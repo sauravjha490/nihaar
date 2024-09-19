@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "114934148574",
+    "project_id": "nihaar-88365",
+    "storage_bucket": "nihaar-88365.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:114934148574:android:c8734f67ecc5f5fd89414f",
+        "android_client_info": {
+          "package_name": "com.example.nihaar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRbt5zBypc3JnM_wWa-rc4RAvEEaZNZAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
