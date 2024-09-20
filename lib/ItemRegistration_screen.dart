@@ -8,7 +8,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:io';
 import 'package:screenshot/screenshot.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class ItemRegistrationScreen extends StatefulWidget {
   const ItemRegistrationScreen({super.key});
@@ -29,7 +32,9 @@ class _ItemRegistrationScreenState extends State<ItemRegistrationScreen> {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: await _showImageSourceDialog(),
+    );
 
     setState(() {
       _selectedImage = image;
@@ -39,6 +44,27 @@ class _ItemRegistrationScreenState extends State<ItemRegistrationScreen> {
       print('Selected image path: ${_selectedImage!.path}');
       print('File exists: ${File(_selectedImage!.path).existsSync()}');
     }
+  }
+
+  Future<ImageSource> _showImageSourceDialog() async {
+    return await showDialog<ImageSource>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select Image Source'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.camera),
+              child: const Text('Camera'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(ImageSource.gallery),
+              child: const Text('Gallery'),
+            ),
+          ],
+        );
+      },
+    ) ?? ImageSource.gallery; // Default to gallery if dialog is closed
   }
 
   Future<void> _registerItem() async {
@@ -89,6 +115,7 @@ class _ItemRegistrationScreenState extends State<ItemRegistrationScreen> {
 
         _itemController.clear();
         _priceController.clear();
+        _quantityController.clear();
         setState(() {
           _selectedImage = null;
         });
@@ -116,93 +143,95 @@ class _ItemRegistrationScreenState extends State<ItemRegistrationScreen> {
         centerTitle: true,
         backgroundColor: Colors.teal,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _itemController,
-              decoration: const InputDecoration(
-                labelText: 'Item Name',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _itemController,
+                decoration: const InputDecoration(
+                  labelText: 'Item Name',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                ],
               ),
-              inputFormatters: [
-                 FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')), // Allow only alphabets and spaces
-                 ],
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _priceController,
-              decoration: const InputDecoration(
-                labelText: 'Price',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _priceController,
+                decoration: const InputDecoration(
+                  labelText: 'Price',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                ],
               ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-              ],
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _quantityController,
-              decoration: const InputDecoration(
-                labelText: 'Quantity',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _quantityController,
+                decoration: const InputDecoration(
+                  labelText: 'Quantity',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
               ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _pickImage,
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.teal,
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _pickImage,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.teal,
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+                child: const Text(
+                  'Pick Image',
+                  style: TextStyle(fontSize: 18.0),
                 ),
               ),
-              child: const Text(
-                'Pick Image',
-                style: TextStyle(fontSize: 18.0),
-              ),
-            ),
-            const SizedBox(height: 20),
-            _selectedImage != null
-                ? Image.file(
-                    File(_selectedImage!.path),
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  )
-                : const Text('No image selected'),
-            const SizedBox(height: 20),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator()) // Show loader
-                : ElevatedButton(
-                    onPressed: _registerItem,
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.teal,
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
+              const SizedBox(height: 20),
+              _selectedImage != null
+                  ? Image.file(
+                      File(_selectedImage!.path),
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    )
+                  : const Text('No image selected'),
+              const SizedBox(height: 20),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _registerItem,
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      child: const Text(
+                        'Register Item',
+                        style: TextStyle(fontSize: 18.0),
                       ),
                     ),
-                    child: const Text(
-                      'Register Item',
-                      style: TextStyle(fontSize: 18.0),
-                    ),
-                  ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -281,6 +310,52 @@ class QrCodeScreen extends StatelessWidget {
               ),
               child: const Text(
                 'Save QR',
+                style: TextStyle(fontSize: 18.0),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  // Capture screenshot for printing
+                  final Uint8List? image = await screenshotController.capture();
+
+                  if (image != null) {
+                    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async {
+                      final pdf = pw.Document();
+                      pdf.addPage(
+                        pw.Page(
+                          build: (pw.Context context) => pw.Center(
+                            child: pw.Image(pw.MemoryImage(image)),
+                          ),
+                        ),
+                      );
+                      return pdf.save();
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('QR code sent to printer')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to capture QR code for printing')),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error printing QR code: $e')),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.teal,
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 10.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+              ),
+              child: const Text(
+                'Print QR',
                 style: TextStyle(fontSize: 18.0),
               ),
             ),

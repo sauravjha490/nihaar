@@ -1,8 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      // Sign out from Google
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate to the login screen
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +77,13 @@ class HomePage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.green, // Change to a suitable color
+                  backgroundColor: Colors.green,
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                 ),
-                icon: const Icon(Icons.article), // Icon for Sales Report
+                icon: const Icon(Icons.article),
                 label: const Text(
                   'Sales Report',
                   style: TextStyle(fontSize: 18.0),
@@ -84,7 +103,7 @@ class HomePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                 ),
-                icon: const Icon(Icons.add), // Icon for Item Registration
+                icon: const Icon(Icons.add),
                 label: const Text(
                   'Go to Item Registration',
                   style: TextStyle(fontSize: 18.0),
@@ -104,7 +123,7 @@ class HomePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                 ),
-                icon: const Icon(Icons.camera_alt), // Icon for Scanner
+                icon: const Icon(Icons.camera_alt),
                 label: const Text(
                   'Go to Scanner',
                   style: TextStyle(fontSize: 18.0),
@@ -118,13 +137,13 @@ class HomePage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: Colors.blue, // Change to a suitable color
+                  backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                 ),
-                icon: const Icon(Icons.view_list), // Icon for Products
+                icon: const Icon(Icons.view_list),
                 label: const Text(
                   'View Products',
                   style: TextStyle(fontSize: 18.0),
@@ -133,16 +152,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 20),
               // Logout Button
               ElevatedButton.icon(
-                onPressed: () async {
-                  try {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacementNamed(context, '/login');
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Logout failed: $e')),
-                    );
-                  }
-                },
+                onPressed: () => _signOut(context), // Call the sign-out method
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.red,
@@ -151,7 +161,7 @@ class HomePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                 ),
-                icon: const Icon(Icons.logout), // Icon for Logout
+                icon: const Icon(Icons.logout),
                 label: const Text(
                   'Logout',
                   style: TextStyle(fontSize: 18.0),

@@ -34,7 +34,7 @@ class _SalesDataPageState extends State<SalesDataPage> {
 
         if (!productSnapshot.exists) {
           print('Product not found: $productName');
-          availableQuantity = 200;
+          availableQuantity = 100;
         } else {
           availableQuantity = productSnapshot.get('quantity') is double
               ? productSnapshot.get('quantity') as double
