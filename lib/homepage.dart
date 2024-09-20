@@ -15,8 +15,10 @@ class HomePage extends StatelessWidget {
       await FirebaseAuth.instance.signOut();
 
       // Navigate to the login screen
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Logout failed: $e')),
       );
@@ -60,12 +62,12 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               // Welcome Text
-              Text(
+              const Text(
                 'Welcome to Nihaar',
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 20, 51, 48),
+                  color: Color.fromARGB(255, 20, 51, 48),
                 ),
                 textAlign: TextAlign.center,
               ),

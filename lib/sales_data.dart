@@ -83,20 +83,39 @@ class _SalesDataPageState extends State<SalesDataPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Sales Data'),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text('Sales Data'),
+      centerTitle: true,
+      backgroundColor: Colors.teal,
+    ),
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Add the logo image at the top
+          Image.asset(
+            'assets/logo1.png', // Ensure this path matches your assets structure
+            width: 100, // Adjust width as needed
+            height: 100, // Adjust height as needed
+          ),
+          const SizedBox(height: 30), // Space between image and button
+          ElevatedButton(
+            onPressed: _generateCSV,
+            child: Text('Generate and Share Sales Data as CSV'),
+          ),
+          const SizedBox(height: 10), // Space between button and text
+          const Text(
+            'This report summarizes the sales data for your review.\n'
+            'Click the button above to generate and share the report in CSV format.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14.0, color: Colors.black54),
+          ),
+        ],
       ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: _generateCSV,
-          child: Text('Generate and Share Sales Data as CSV'),
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 }
